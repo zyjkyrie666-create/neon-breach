@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="霓虹突围：一个展示游戏客户端开发、关卡工具、性能优化和视觉反馈能力的零依赖 HTML5 Canvas 项目。"
+    />
+    <title>霓虹突围 · 游戏客户端作品</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="#" aria-label="霓虹突围首页">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span>
+            <strong>NEON BREACH</strong>
+            <small>GAMEPLAY SYSTEMS LAB</small>
+          </span>
+        </a>
+
+        <div class="topbar-meta">
+          <span class="status-dot"><i></i> Runtime Online</span>
+          <span class="build-tag">BUILD 1.0.0</span>
+        </div>
+      </header>
+
+      <main class="workspace">
+        <section class="game-column" aria-label="游戏区域">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">PORTFOLIO PROJECT / GAME CLIENT</p>
+              <h1>霓虹突围 <span>Neon Breach</span></h1>
+            </div>
+            <nav class="mode-switch" aria-label="模式切换">
+              <button class="mode-button is-active" data-mode="play">战斗模式</button>
+              <button class="mode-button" data-mode="editor">关卡编辑</button>
+            </nav>
+          </div>
+
+          <div class="canvas-frame" id="arenaWrap">
+            <canvas
+              id="gameCanvas"
+              width="1280"
+              height="720"
+              tabindex="0"
+              aria-label="霓虹突围游戏画面"
+            ></canvas>
+
+            <div class="screen-overlay" id="startScreen">
+              <div class="overlay-card">
+                <p class="overlay-kicker">SECTOR 07 / SIMULATION READY</p>
+                <h2>突破失控的<br /><span>霓虹防线</span></h2>
+                <p>
+                  在不断升级的敌群中生存。移动、瞄准、射击与冲刺，利用掩体争取更高分数。
+                </p>
+                <button class="primary-button" id="startButton">
+                  <span>启动作战</span><b>ENTER</b>
+                </button>
+                <div class="quick-controls">
+                  <span><kbd>WASD</kbd> 移动</span>
+                  <span><kbd>鼠标</kbd> 瞄准射击</span>
+                  <span><kbd>SPACE</kbd> 冲刺</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="screen-overlay is-hidden" id="gameOverScreen">
+              <div class="overlay-card compact">
+                <p class="overlay-kicker danger">CONNECTION TERMINATED</p>
+                <h2>作战终止</h2>
+                <div class="result-grid">
+                  <div><small>本局得分</small><strong id="finalScore">0</strong></div>
+                  <div><small>最高波次</small><strong id="finalWave">1</strong></div>
+                  <div><small>历史纪录</small><strong id="bestScore">0</strong></div>
+                </div>
+                <button class="primary-button" id="restartButton">
+                  <span>重新部署</span><b>R</b>
+                </button>
+              </div>
+            </div>
+
+            <div class="screen-overlay pause-overlay is-hidden" id="pauseScreen">
+              <div class="overlay-card compact pause-card">
+                <p class="overlay-kicker pause-kicker">SIMULATION PAUSED</p>
+                <h2>作战暂停</h2>
+                <p>当前战斗进度已保留。你可以继续作战，或退出本局返回主界面。</p>
+                <div class="pause-actions">
+                  <button class="primary-button" id="continueButton">
+                    <span>继续作战</span><b>ESC</b>
+                  </button>
+                  <button class="secondary-button" id="exitButton">退出到主界面</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="editor-badge is-hidden" id="editorBadge">
+              EDITOR MODE <span>左键编辑 · 右键快速删除</span>
+            </div>
+            <div class="toast is-hidden" id="toast" role="status"></div>
+          </div>
+
+          <div class="control-strip">
+            <div class="control-group">
+              <span><kbd>W A S D</kbd><small>移动</small></span>
+              <span><kbd>鼠标左键</kbd><small>射击</small></span>
+              <span><kbd>SPACE</kbd><small>冲刺</small></span>
+              <span><kbd>ESC</kbd><small>暂停</small></span>
+              <span><kbd>F3</kbd><small>性能面板</small></span>
+            </div>
+            <div class="action-group">
+              <button class="icon-button" id="pauseButton" title="暂停或继续">Ⅱ</button>
+              <button class="icon-button" id="soundButton" title="开启或关闭声音">SFX</button>
+              <button class="icon-button" id="fullscreenButton" title="全屏">⛶</button>
+            </div>
+          </div>
+        </section>
+
+        <aside class="inspector" aria-label="项目信息与工具">
+          <section class="panel telemetry-panel">
+            <div class="panel-title">
+              <div>
+                <p class="eyebrow">LIVE TELEMETRY</p>
+                <h2>运行监控</h2>
+              </div>
+              <span class="live-pill">LIVE</span>
+            </div>
+            <dl class="telemetry-grid">
+              <div><dt>FPS</dt><dd id="fpsValue">60</dd></div>
+              <div><dt>对象</dt><dd id="entityValue">0</dd></div>
+              <div><dt>碰撞候选</dt><dd id="collisionValue">0</dd></div>
+              <div><dt>对象池复用</dt><dd id="poolValue">0%</dd></div>
+            </dl>
+            <div class="performance-note">
+              <i></i>
+              <p><strong>性能策略已启用</strong><span>固定时间步 · 对象池 · 空间哈希</span></p>
+            </div>
+          </section>
+
+          <section class="panel objective-panel">
+            <div class="panel-title">
+              <div>
+                <p class="eyebrow">MISSION BRIEF</p>
+                <h2>作战目标</h2>
+              </div>
+              <span class="mission-index" id="waveLabel">WAVE 01</span>
+            </div>
+            <ul class="objective-list">
+              <li><i class="violet"></i><span>当前作战波次</span><b id="waveValue">第 1 波</b></li>
+              <li><i class="cyan"></i><span>本波剩余敌人</span><b id="enemyCount">0</b></li>
+              <li><i class="violet"></i><span>保持连击获得倍率</span><b id="comboValue">×1.0</b></li>
+              <li><i class="orange"></i><span>当前作战得分</span><b id="scoreValue">000000</b></li>
+            </ul>
+          </section>
+
+          <section class="panel system-panel">
+            <p class="eyebrow">SYSTEM DESIGN</p>
+            <h2>项目能力点</h2>
+            <div class="tech-list">
+              <span>Gameplay Loop</span><span>OOP</span><span>Object Pool</span>
+              <span>Spatial Hash</span><span>Level Tool</span><span>Canvas 2D</span>
+            </div>
+            <p class="panel-copy">
+              项目围绕游戏客户端岗位设计：既有可玩的核心循环，也有开发者工具、数据驱动关卡和实时性能指标。
+            </p>
+          </section>
+
+          <section class="panel editor-panel is-hidden" id="editorPanel">
+            <div class="panel-title">
+              <div>
+                <p class="eyebrow">LEVEL TOOL</p>
+                <h2>关卡编辑器</h2>
+              </div>
+              <span class="save-state" id="saveState">已保存</span>
+            </div>
+
+            <div class="tool-palette" id="toolPalette">
+              <button class="tool-button is-active" data-tool="wall"><i class="wall-icon"></i>墙体</button>
+              <button class="tool-button" data-tool="erase"><i class="erase-icon"></i>删除元素</button>
+              <button class="tool-button" data-tool="enemy"><i class="enemy-icon"></i>敌人出生点</button>
+              <button class="tool-button" data-tool="player"><i class="player-icon"></i>玩家出生点</button>
+            </div>
+
+            <p class="editor-hint">
+              <b>编辑操作</b><span>左键使用当前工具，右键快速删除墙体或敌人出生点。玩家出生点必须保留。</span>
+            </p>
+
+            <label class="data-label" for="mapData">关卡 JSON</label>
+            <textarea id="mapData" spellcheck="false" aria-label="关卡 JSON 数据"></textarea>
+
+            <div class="editor-actions">
+              <button id="exportButton">导出</button>
+              <button id="importButton">载入</button>
+              <button id="resetMapButton">重置</button>
+            </div>
+            <button class="test-button" id="testMapButton">▶ 测试当前关卡</button>
+          </section>
+        </aside>
+      </main>
+
+      <footer>
+        <span>NEON BREACH / CLIENT ENGINEERING DEMO</span>
+        <span>ZERO DEPENDENCY · HTML5 CANVAS · 2026</span>
+      </footer>
+    </div>
+
+    <script src="game.js"></script>
+  </body>
+</html>
